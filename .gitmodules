@@ -1,0 +1,12 @@
+[submodule "vnx-base"]
+	path = vnx-base
+	url = https://github.com/madMAx43v3r/vnx-base.git
+[submodule "uint256_t"]
+	path = uint256_t
+	url = https://github.com/madMAx43v3r/uint256_t.git
+[submodule "libbech32"]
+	path = libbech32
+	url = https://github.com/dcdpr/libbech32.git
+[submodule "mad-direct-io"]
+	path = mad-direct-io
+	url = https://github.com/madMAx43v3r/mad-direct-io.git
