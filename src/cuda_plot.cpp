@@ -24,7 +24,7 @@
 #include <copy.h>
 
 #include <cxxopts.hpp>
-#include <libbech32.h>
+#include <bech32.h>
 #include <version.hpp>
 
 #ifdef __linux__ 
