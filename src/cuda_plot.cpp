@@ -114,17 +114,18 @@ output_t create_plot(	const int k,
 						Node* node,
 						const std::array<uint8_t, 32>& contract,
 						const std::array<uint8_t, 33>& farmer_key,
+						const std::string& name,
 						const std::string& tmp_dir,
 						const std::string& tmp_dir2,
 						const std::string& tmp_dir3)
 {
 	const auto total_begin = get_time_millis();
-	const bool have_puzzle = contract != std::array<uint8_t, 32>();
+	const bool is_nft = contract != std::array<uint8_t, 32>();
 	
 	std::cout << "Process ID: " << GETPID() << std::endl;
 	std::cout << "Farmer Key: " << to_hex_string(farmer_key.data(), farmer_key.size()) << std::endl;
 	
-	if(have_puzzle) {
+	if(is_nft) {
 		std::cout << "Contract Hash: " << to_hex_string(contract.data(), contract.size()) << std::endl;
 	}
 	std::array<uint8_t, 32> seed;
@@ -139,7 +140,7 @@ output_t create_plot(	const int k,
 	{
 		uint32_t offset = 0;
 		uint8_t buf[1024] = {};
-		if(have_puzzle) {
+		if(is_nft) {
 			const std::string tag("MMX/PLOTID/NFT");
 			::memcpy(buf + offset, tag.data(), tag.size()); offset += tag.size();
 		} else {
@@ -150,18 +151,16 @@ output_t create_plot(	const int k,
 		::memcpy(buf + offset, &ksize, 1); offset += 1;
 		::memcpy(buf + offset, seed.data(), seed.size()); offset += seed.size();
 		::memcpy(buf + offset, farmer_key.data(), farmer_key.size()); offset += farmer_key.size();
-		if(have_puzzle) {
+		if(is_nft) {
 			params.have_contract = true;
 			params.contract = contract;
 			::memcpy(buf + offset, contract.data(), contract.size()); offset += contract.size();
 		}
 		params.id = sha256(buf, offset);
 	}
-	std::string prefix = "plot-mmx-" + std::string(ssd_mode ? "ssd" : "hdd");
-	const std::string plot_name = prefix + "-k" + std::to_string(k) + "-c" + std::to_string(clevel)
-			+ "-" + get_date_string_ex("%Y-%m-%d-%H-%M")
-			+ "-" + vnx::to_hex_string(params.id.data(), params.id.size());
 	
+	const auto plot_name = name + "-" + vnx::to_hex_string(params.id.data(), params.id.size());
+
 	std::cout << "Working Directory:   " << (tmp_dir.empty() ? "$PWD" : tmp_dir) << std::endl;
 	std::cout << "Working Directory 2: " << tmp_dir2 << std::endl;
 	if(tmp_dir3 != "@RAM") {
@@ -514,8 +513,13 @@ int _main(int argc, char** argv)
 
 		const auto tmp_dir1 = tmp_dir[i % tmp_dir.size()];
 
+		std::string prefix = "plot-mmx-" + std::string(ssd_mode ? "ssd" : "hdd");
+		const std::string plot_name = prefix + "-k" + std::to_string(k) + "-c" + std::to_string(C)
+			+ (contract_addr_str.size() ? "-nft" + contract_addr_str.substr(3, 7) : "")
+			+ "-" + get_date_string_ex("%Y-%m-%d-%H-%M");
+
 		const auto out = create_plot(
-				k, xbits, C, ssd_mode, node, contract, farmer_key, tmp_dir1, tmp_dir2, tmp_dir3);
+				k, xbits, C, ssd_mode, node, contract, farmer_key, plot_name, tmp_dir1, tmp_dir2, tmp_dir3);
 
 		if(flush_thread.joinable()) {
 			flush_thread.join();
